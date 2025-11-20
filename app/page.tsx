@@ -6,7 +6,7 @@ import Image, { type StaticImageData } from "next/image";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 /** =========================
- *  CONFIG
+ *  CONFIG omg
  *  ========================= */
 const IOS_STORE = "https://apps.apple.com/app/id6754678719";
 const ANDROID_STORE =
