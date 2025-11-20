@@ -1,11 +1,18 @@
+import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
-import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Tell Next.js / Cloudflare that this route runs on the Edge runtime
+export const runtime = "edge";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseServiceRoleKey) {
+  throw new Error("Supabase env vars (NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY) are missing");
+}
+
+const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
 // Permissive, any-TLD email check (e.g., a@b.xyz, a+b@sub.domain.io)
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -16,7 +23,10 @@ export async function POST(req: Request) {
     const { name, subject, message, email } = body;
 
     if (!name || !message) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
     }
 
     const transporter = nodemailer.createTransport({
@@ -30,7 +40,9 @@ export async function POST(req: Request) {
     const mailOptions = {
       from: `"BrainScroller Contact" <${process.env.EMAIL_USER}>`,
       to: "brainscroller@gmail.com",
-      subject: subject ? `[BrainScroller] ${subject}` : "New message from BrainScroller contact form",
+      subject: subject
+        ? `[BrainScroller] ${subject}`
+        : "New message from BrainScroller contact form",
       text: `📩 New BrainScroller Contact Message
 
 From: ${name}
@@ -45,6 +57,7 @@ Sent via BrainScroller Contact Page`,
       replyTo: email && EMAIL_REGEX.test(email) ? email : undefined,
     };
 
+    // NOTE: This may or may not work on Cloudflare Edge because SMTP support is limited.
     await transporter.sendMail(mailOptions);
 
     const { error: dbError } = await supabase.from("messages").insert([
@@ -63,6 +76,9 @@ Sent via BrainScroller Contact Page`,
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (err) {
     console.error("Email send failed:", err);
-    return NextResponse.json({ error: "Failed to send email" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to send email" },
+      { status: 500 }
+    );
   }
 }
