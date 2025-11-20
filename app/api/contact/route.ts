@@ -1,18 +1,23 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
-import nodemailer from "nodemailer";
 
-// Tell Next.js / Cloudflare that this route runs on the Edge runtime
 export const runtime = "edge";
 
+// Read env vars (provided by Cloudflare Pages)
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !supabaseServiceRoleKey) {
-  throw new Error("Supabase env vars (NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY) are missing");
+  // This will only show in server logs, not the client
+  console.error(
+    "Supabase env vars are missing. Check NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY."
+  );
 }
 
-const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+const supabase =
+  supabaseUrl && supabaseServiceRoleKey
+    ? createClient(supabaseUrl, supabaseServiceRoleKey)
+    : null;
 
 // Permissive, any-TLD email check (e.g., a@b.xyz, a+b@sub.domain.io)
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -29,55 +34,34 @@ export async function POST(req: Request) {
       );
     }
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+    // Save to Supabase (DB log of all contact messages)
+    if (supabase) {
+      const { error: dbError } = await supabase.from("messages").insert([
+        {
+          name,
+          email: email && EMAIL_REGEX.test(email) ? email : null,
+          subject: subject || null,
+          message,
+          created_at: new Date().toISOString(),
+          source: "contact_page",
+        },
+      ]);
 
-    const mailOptions = {
-      from: `"BrainScroller Contact" <${process.env.EMAIL_USER}>`,
-      to: "brainscroller@gmail.com",
-      subject: subject
-        ? `[BrainScroller] ${subject}`
-        : "New message from BrainScroller contact form",
-      text: `📩 New BrainScroller Contact Message
+      if (dbError) {
+        console.error("Supabase insert failed:", dbError);
+      }
+    } else {
+      console.error("Supabase client not initialised; skipping DB insert.");
+    }
 
-From: ${name}
-Email: ${email || "(not provided)"}
-Subject: ${subject || "(none)"}
-
-Message:
-${message}
-
-----------------------------------
-Sent via BrainScroller Contact Page`,
-      replyTo: email && EMAIL_REGEX.test(email) ? email : undefined,
-    };
-
-    // NOTE: This may or may not work on Cloudflare Edge because SMTP support is limited.
-    await transporter.sendMail(mailOptions);
-
-    const { error: dbError } = await supabase.from("messages").insert([
-      {
-        name,
-        email: email || null,
-        subject: subject || null,
-        message,
-        created_at: new Date().toISOString(),
-        source: "contact_page",
-      },
-    ]);
-
-    if (dbError) console.error("Supabase insert failed:", dbError);
+    // TODO (later): call an email API via fetch here (Resend / SendGrid).
+    // Cannot use nodemailer in Edge runtime.
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (err) {
-    console.error("Email send failed:", err);
+    console.error("Contact route failed:", err);
     return NextResponse.json(
-      { error: "Failed to send email" },
+      { error: "Failed to submit message" },
       { status: 500 }
     );
   }
