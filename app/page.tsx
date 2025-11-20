@@ -1,7 +1,7 @@
 "use client";
 
 import logoUrl from "@/public/logo.png";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import Image, { type StaticImageData } from "next/image";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
@@ -129,6 +129,7 @@ function HeroParticles({
   targetRef: React.RefObject<HTMLDivElement>;
   reduceMotion?: boolean;
 }) {
+  // NOTE: Component kept for future, but not currently used
   useEffect(() => {
     if (reduceMotion) return;
     if (typeof window === "undefined") return;
@@ -422,7 +423,11 @@ const goldText =
  *  DOOMSCROLLING MATH
  *  ========================= */
 
-function DoomscrollMathSection({ reduceMotion = false }: { reduceMotion?: boolean }) {
+function DoomscrollMathSection({
+  reduceMotion = false,
+}: {
+  reduceMotion?: boolean;
+}) {
   const hoursPerDay = 2;
   const years = 5;
   const hoursPerYear = hoursPerDay * 365;
@@ -585,11 +590,7 @@ function DoomscrollMathSection({ reduceMotion = false }: { reduceMotion?: boolea
                     initial={{ scaleY: 0, y: 0 }}
                     whileInView={{ scaleY: 1 }}
                     viewport={{ once: true, amount: 0.5 }}
-                    animate={
-                      reduceMotion
-                        ? undefined
-                        : { y: [0, -1.5, 0] }
-                    }
+                    animate={reduceMotion ? undefined : { y: [0, -1.5, 0] }}
                     transition={{
                       scaleY: {
                         delay: 0.28 + idx * 0.06 + i * 0.05,
@@ -661,7 +662,7 @@ function DoomscrollMathSection({ reduceMotion = false }: { reduceMotion?: boolea
                 </motion.div>
               </div>
             )}
-                       {m.kind === "writing" && (
+            {m.kind === "writing" && (
               <div className="mb-4 flex h-16 items-center gap-1.5 overflow-hidden">
                 {[0, 1, 2, 3, 4].map((i) => (
                   <motion.div
@@ -669,7 +670,7 @@ function DoomscrollMathSection({ reduceMotion = false }: { reduceMotion?: boolea
                     initial={{ opacity: 0, x: 12, y: 0 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true, amount: 0.5 }}
-                    animate={{ y: [0, -3, 0] }}
+                    animate={reduceMotion ? undefined : { y: [0, -3, 0] }}
                     transition={{
                       opacity: {
                         delay: 0.25 + i * 0.06,
@@ -681,13 +682,17 @@ function DoomscrollMathSection({ reduceMotion = false }: { reduceMotion?: boolea
                         duration: 0.4,
                         ease: "easeOut",
                       },
-                      y: {
-                        delay: 0.8 + i * 0.15,
-                        duration: 2.4,
-                        repeat: Infinity,
-                        repeatType: "reverse",
-                        ease: "easeOut",
-                      },
+                      ...(reduceMotion
+                        ? {}
+                        : {
+                            y: {
+                              delay: 0.8 + i * 0.15,
+                              duration: 2.4,
+                              repeat: Infinity,
+                              repeatType: "reverse",
+                              ease: "easeOut",
+                            },
+                          }),
                     }}
                     className="flex-1 rounded-md bg-gradient-to-b from-amber-200/70 via-amber-300/60 to-amber-100/40 p-[3px]"
                     style={{ transformOrigin: "bottom left" }}
@@ -703,7 +708,6 @@ function DoomscrollMathSection({ reduceMotion = false }: { reduceMotion?: boolea
                 ))}
               </div>
             )}
-
 
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-300">
               {m.label}
@@ -841,14 +845,6 @@ function ProblemStatementSection() {
  *  OUR SOLUTION / HOW IT WORKS
  *  ========================= */
 function SolutionSection({ reduceMotion = false }: { reduceMotion?: boolean }) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start 80%", "end 20%"],
-  });
-
-  const glowOpacity = useTransform(scrollYProgress, [0, 0.5, 1], [0, 1, 0.6]);
-
   const steps = [
     {
       id: "01",
@@ -870,7 +866,6 @@ function SolutionSection({ reduceMotion = false }: { reduceMotion?: boolean }) {
   return (
     <motion.section
       id="solution"
-      ref={ref}
       initial={{ opacity: 0, y: 80 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.4 }}
@@ -879,7 +874,10 @@ function SolutionSection({ reduceMotion = false }: { reduceMotion?: boolean }) {
     >
       <motion.div
         aria-hidden
-        style={reduceMotion ? undefined : { opacity: glowOpacity }}
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.9, ease: "easeOut" }}
         className="pointer-events-none absolute inset-0 -z-10"
       >
         <div className="absolute left-1/2 top-0 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-[radial-gradient(circle,rgba(250,204,21,0.28),transparent_70%)] blur-[140px]" />
@@ -1130,7 +1128,7 @@ function BrainPlusSection() {
               <div className="mb-1 inline-flex items-center gap-2 rounded-full bg-amber-400/20 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-100">
                 Most Popular
               </div>
-            <h3 className="text-base font-semibold text-amber-50">
+              <h3 className="text-base font-semibold text-amber-50">
                 Brain+ Premium
               </h3>
               <ul className="mt-4 space-y-2 text-xs leading-6 text-amber-50/90">
@@ -1359,25 +1357,6 @@ export default function Page() {
     };
   }, []);
 
-  useEffect(() => {
-    if (reduceMotion) return;
-    const reduce = window.matchMedia?.(
-      "(prefers-reduced-motion: reduce)"
-    )?.matches;
-    if (reduce) return;
-
-    const el = () =>
-      brainRef.current?.querySelector("img") as HTMLElement | null;
-    const onScroll = () => {
-      const t = Math.min(1, window.scrollY / 600);
-      const img = el();
-      if (img) img.style.transform = `translateY(${t * 6}px)`;
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [reduceMotion]);
-
   return (
     <main className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-black via-zinc-950 to-black text-zinc-100">
       <div
@@ -1420,9 +1399,9 @@ export default function Page() {
       <section
         id="hero-wrap"
         aria-label="Hero"
-        className="relative mx-auto max-w-6xl overflow-hidden px-4 pb-12 pt-12 md:pb-16 md:pt-16"
+        className="relative mx-auto max-w-6xl px-4 pb-12 pt-12 md:pb-16 md:pt-16"
       >
-        <HeroParticles targetRef={brainRef} reduceMotion={reduceMotion} />
+        {/* HeroParticles disabled for performance */}
 
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute left-1/2 top-1/2 h-[480px] w-[480px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-400/25 blur-[120px]" />
@@ -1704,13 +1683,20 @@ export default function Page() {
       </footer>
 
       {sticky && (
-        <div className="fixed inset-x-0 bottom-3 z-40 mx-auto w-[94%] rounded-2xl border border-amber-400/25 bg-[rgba(0,0,0,0.86)] p-2 backdrop-blur-md md:hidden">
-          <a
-            href={IOS_STORE}
-            className="block w-full rounded-xl bg-amber-400 py-3 text-center text-sm font-semibold text-black"
-          >
-            Get the App
-          </a>
+        <div
+          className="fixed inset-x-0 z-40 md:hidden"
+          style={{
+            bottom: "calc(env(safe-area-inset-bottom, 0px) + 12px)",
+          }}
+        >
+          <div className="mx-auto w-[94%] rounded-2xl border border-amber-400/25 bg-[rgba(0,0,0,0.86)] p-2 backdrop-blur-md">
+            <a
+              href={IOS_STORE}
+              className="block w-full rounded-xl bg-amber-400 py-3 text-center text-sm font-semibold text-black"
+            >
+              Get the App
+            </a>
+          </div>
         </div>
       )}
 
