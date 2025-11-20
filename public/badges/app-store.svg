@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="48" viewBox="0 0 160 48">
+  <defs>
+    <clipPath id="clip-app">
+      <rect x="1" y="1" width="158" height="46" rx="10" ry="10"></rect>
+    </clipPath>
+    <linearGradient id="bg-app" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#18181b"></stop>
+      <stop offset="1" stop-color="#09090b"></stop>
+    </linearGradient>
+  </defs>
+
+  <!-- outer bezel -->
+  <rect x="0.5" y="0.5" width="159" height="47" rx="11" ry="11" fill="#0b0b0b" stroke="#3f3f46"></rect>
+
+  <!-- subtle inner gradient -->
+  <g clip-path="url(#clip-app)">
+    <rect x="0" y="-10" width="160" height="68" fill="url(#bg-app)"></rect>
+  </g>
+
+  <!-- YOUR EXACT PNG (no changes) -->
+  <image href="/badges/apple-gold.png" x="10" y="10" width="28" height="28" preserveAspectRatio="xMidYMid meet"></image>
+
+  <!-- Text -->
+  <text x="48" y="21" fill="#a1a1aa" font-size="10" font-weight="600" font-family="system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',sans-serif" letter-spacing=".02em">Download on the</text>
+  <text x="48" y="35" fill="#facc15" font-size="16" font-weight="700" font-family="system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',sans-serif" letter-spacing=".01em">App Store</text>
+</svg>

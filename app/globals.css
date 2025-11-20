@@ -1,0 +1,7 @@
+/* app/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* optional: classy defaults */
+html, body { background: #000; }
