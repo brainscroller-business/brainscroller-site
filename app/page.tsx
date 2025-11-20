@@ -124,17 +124,23 @@ function Ellipsis({ className = "" }: { className?: string }) {
  *  ========================= */
 function HeroParticles({
   targetRef,
+  reduceMotion = false,
 }: {
   targetRef: React.RefObject<HTMLDivElement>;
+  reduceMotion?: boolean;
 }) {
   useEffect(() => {
+    if (reduceMotion) return;
+    if (typeof window === "undefined") return;
+    if (window.innerWidth < 768) return;
+
+    const host = document.getElementById("hero-wrap");
+    if (!host) return;
+
     const reduce = window.matchMedia?.(
       "(prefers-reduced-motion: reduce)"
     )?.matches;
     if (reduce) return;
-
-    const host = document.getElementById("hero-wrap");
-    if (!host) return;
 
     const canvas = document.createElement("canvas");
     canvas.style.position = "absolute";
@@ -144,7 +150,10 @@ function HeroParticles({
     host.appendChild(canvas);
 
     const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (!ctx) {
+      canvas.remove();
+      return;
+    }
 
     const DPR = Math.min(window.devicePixelRatio || 1, 2);
     const resize = () => {
@@ -213,10 +222,11 @@ function HeroParticles({
       return { x, y, r };
     };
 
-    const MAX = 10;
-    const RATE = 1.0;
+    const MAX = 6;
+    const RATE = 0.7;
     let acc = 0;
     let last = performance.now();
+    let frameId: number;
 
     const bez = (t: number, p0: number, p1: number, p2: number) =>
       (1 - t) * (1 - t) * p0 + 2 * (1 - t) * t * p1 + t * t * p2;
@@ -348,7 +358,6 @@ function HeroParticles({
         ctx.restore();
       }
 
-      // Vertical vignette
       ctx.save();
       (ctx as any).globalCompositeOperation = "destination-in";
       const h = canvas.height;
@@ -362,7 +371,6 @@ function HeroParticles({
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.restore();
 
-      // Radial vignette
       ctx.save();
       (ctx as any).globalCompositeOperation = "destination-in";
       const cInfo = c;
@@ -380,18 +388,24 @@ function HeroParticles({
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.restore();
 
-      requestAnimationFrame(LOOP);
+      frameId = requestAnimationFrame(LOOP);
     };
-    const raf = requestAnimationFrame(LOOP);
 
-    const onBlur = () => cancelAnimationFrame(raf);
+    frameId = requestAnimationFrame(LOOP);
+
+    const onBlur = () => {
+      if (frameId) cancelAnimationFrame(frameId);
+    };
     window.addEventListener("blur", onBlur);
+
     return () => {
       ro.disconnect();
+      if (frameId) cancelAnimationFrame(frameId);
       canvas.remove();
       window.removeEventListener("blur", onBlur);
     };
-  }, [targetRef]);
+  }, [targetRef, reduceMotion]);
+
   return null;
 }
 
@@ -408,11 +422,11 @@ const goldText =
  *  DOOMSCROLLING MATH
  *  ========================= */
 
-function DoomscrollMathSection() {
+function DoomscrollMathSection({ reduceMotion = false }: { reduceMotion?: boolean }) {
   const hoursPerDay = 2;
   const years = 5;
-  const hoursPerYear = hoursPerDay * 365; // 730
-  const totalHours = hoursPerYear * years; // 3650+
+  const hoursPerYear = hoursPerDay * 365;
+  const totalHours = hoursPerYear * years;
 
   const metrics: {
     label: string;
@@ -449,7 +463,6 @@ function DoomscrollMathSection() {
       transition={{ duration: 0.7, ease: "easeOut" }}
       className="relative mx-auto mt-4 max-w-6xl px-4 pb-16 pt-10"
     >
-      {/* black + gold backdrop with reveal */}
       <motion.div
         aria-hidden
         initial={{
@@ -469,7 +482,6 @@ function DoomscrollMathSection() {
         <div className="absolute inset-0 opacity-[0.10] [background-image:url('/grain.png')] mix-blend-soft-light" />
       </motion.div>
 
-      {/* Top label + headline */}
       <div className="mx-auto max-w-3xl text-center">
         <p className="mb-3 inline-flex items-center justify-center rounded-full border border-amber-400/30 bg-black/70 px-3 py-1 text-[11px] font-semibold tracking-[0.22em] text-amber-300">
           THE MATH OF DOOMSCROLLING
@@ -495,7 +507,6 @@ function DoomscrollMathSection() {
         ></motion.p>
       </div>
 
-      {/* Central big number strip */}
       <motion.div
         initial={{ opacity: 0, y: 26, scale: 0.97 }}
         whileInView={{ opacity: 1, y: 0, scale: 1 }}
@@ -544,7 +555,6 @@ function DoomscrollMathSection() {
         </motion.div>
       </motion.div>
 
-      {/* Metric cards – different animated visuals per card */}
       <div className="mt-9 grid gap-5 md:grid-cols-3">
         {metrics.map((m, idx) => (
           <motion.div
@@ -562,13 +572,11 @@ function DoomscrollMathSection() {
               "px-6 py-5 text-left shadow-[0_24px_80px_rgba(0,0,0,0.8)]"
             )}
           >
-            {/* top glow */}
             <div
               aria-hidden
               className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-amber-400/70 to-transparent"
             />
 
-            {/* VISUALS */}
             {m.kind === "books" && (
               <div className="mb-4 flex items-end gap-1.5">
                 {[14, 26, 38, 52, 64].map((h, i) => (
@@ -577,20 +585,28 @@ function DoomscrollMathSection() {
                     initial={{ scaleY: 0, y: 0 }}
                     whileInView={{ scaleY: 1 }}
                     viewport={{ once: true, amount: 0.5 }}
-                    animate={{ y: [0, -1.5, 0] }}
+                    animate={
+                      reduceMotion
+                        ? undefined
+                        : { y: [0, -1.5, 0] }
+                    }
                     transition={{
                       scaleY: {
                         delay: 0.28 + idx * 0.06 + i * 0.05,
                         duration: 0.4,
                         ease: "easeOut",
                       },
-                      y: {
-                        delay: 0.9 + i * 0.12,
-                        duration: 2.2,
-                        repeat: Infinity,
-                        repeatType: "reverse",
-                        ease: "easeInOut",
-                      },
+                      ...(reduceMotion
+                        ? {}
+                        : {
+                            y: {
+                              delay: 0.9 + i * 0.12,
+                              duration: 2.2,
+                              repeat: Infinity,
+                              repeatType: "reverse",
+                              ease: "easeInOut",
+                            },
+                          }),
                     }}
                     className="origin-bottom flex-1 rounded-md bg-gradient-to-t from-amber-500/90 via-amber-400/80 to-amber-200/90 shadow-[0_0_20px_rgba(251,191,36,0.45)]"
                     style={{ height: `${h}px` }}
@@ -610,12 +626,16 @@ function DoomscrollMathSection() {
                 >
                   <motion.div
                     className="absolute inset-3 rounded-full border border-amber-300/50"
-                    animate={{ rotate: 360 }}
-                    transition={{
-                      duration: 14,
-                      repeat: Infinity,
-                      ease: "linear",
-                    }}
+                    animate={reduceMotion ? undefined : { rotate: 360 }}
+                    transition={
+                      reduceMotion
+                        ? undefined
+                        : {
+                            duration: 14,
+                            repeat: Infinity,
+                            ease: "linear",
+                          }
+                    }
                   >
                     {["FR", "ES", "JP"].map((code, i) => (
                       <span
@@ -641,51 +661,50 @@ function DoomscrollMathSection() {
                 </motion.div>
               </div>
             )}
-         {m.kind === "writing" && (
-  <div className="mb-4 flex h-16 items-center gap-1.5 overflow-hidden">
-    {[0, 1, 2, 3, 4].map((i) => (
-      <motion.div
-        key={i}
-        initial={{ opacity: 0, x: 12, y: 0 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        viewport={{ once: true, amount: 0.5 }}
-        animate={{ y: [0, -3, 0] }}
-        transition={{
-          opacity: {
-            delay: 0.25 + i * 0.06,
-            duration: 0.4,
-            ease: "easeOut",
-          },
-          x: {
-            delay: 0.25 + i * 0.06,
-            duration: 0.4,
-            ease: "easeOut",
-          },
-          y: {
-            delay: 0.8 + i * 0.15,
-            duration: 2.4,
-            repeat: Infinity,
-            repeatType: "reverse",
-            ease: "easeOut",
-          },
-        }}
-        className="flex-1 rounded-md bg-gradient-to-b from-amber-200/70 via-amber-300/60 to-amber-100/40 p-[3px]"
-        style={{ transformOrigin: "bottom left" }}
-      >
-        <div className="h-full rounded-[6px] bg-black/80">
-          <div className="mt-1 space-y-[3px] px-2">
-            <div className="h-[2px] w-3/4 rounded-full bg-amber-300/70" />
-            <div className="h-[2px] w-1/2 rounded-full bg-amber-200/60" />
-            <div className="h-[2px] w-4/5 rounded-full bg-amber-200/40" />
-          </div>
-        </div>
-      </motion.div>
-    ))}
-  </div>
-)}
+                       {m.kind === "writing" && (
+              <div className="mb-4 flex h-16 items-center gap-1.5 overflow-hidden">
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: 12, y: 0 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true, amount: 0.5 }}
+                    animate={{ y: [0, -3, 0] }}
+                    transition={{
+                      opacity: {
+                        delay: 0.25 + i * 0.06,
+                        duration: 0.4,
+                        ease: "easeOut",
+                      },
+                      x: {
+                        delay: 0.25 + i * 0.06,
+                        duration: 0.4,
+                        ease: "easeOut",
+                      },
+                      y: {
+                        delay: 0.8 + i * 0.15,
+                        duration: 2.4,
+                        repeat: Infinity,
+                        repeatType: "reverse",
+                        ease: "easeOut",
+                      },
+                    }}
+                    className="flex-1 rounded-md bg-gradient-to-b from-amber-200/70 via-amber-300/60 to-amber-100/40 p-[3px]"
+                    style={{ transformOrigin: "bottom left" }}
+                  >
+                    <div className="h-full rounded-[6px] bg-black/80">
+                      <div className="mt-1 space-y-[3px] px-2">
+                        <div className="h-[2px] w-3/4 rounded-full bg-amber-300/70" />
+                        <div className="h-[2px] w-1/2 rounded-full bg-amber-200/60" />
+                        <div className="h-[2px] w-4/5 rounded-full bg-amber-200/40" />
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
 
 
-            {/* Text */}
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-300">
               {m.label}
             </p>
@@ -716,7 +735,6 @@ function ProblemStatementSection() {
       transition={{ duration: 0.8, ease: "easeOut" }}
       className="relative mx-auto max-w-6xl px-4 py-24 md:py-32"
     >
-      {/* full-bleed black backdrop */}
       <motion.div
         aria-hidden
         initial={{ opacity: 0, clipPath: "inset(40% 20% 40% 20%)" }}
@@ -776,7 +794,6 @@ function ProblemStatementSection() {
           knowledge.
         </motion.p>
 
-        {/* scroll cue down to solution */}
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -823,7 +840,7 @@ function ProblemStatementSection() {
 /** =========================
  *  OUR SOLUTION / HOW IT WORKS
  *  ========================= */
-function SolutionSection() {
+function SolutionSection({ reduceMotion = false }: { reduceMotion?: boolean }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -832,7 +849,6 @@ function SolutionSection() {
 
   const glowOpacity = useTransform(scrollYProgress, [0, 0.5, 1], [0, 1, 0.6]);
 
-  // SHORTER, PUNCHIER COPY
   const steps = [
     {
       id: "01",
@@ -861,10 +877,9 @@ function SolutionSection() {
       transition={{ duration: 0.7, ease: "easeOut" }}
       className="relative mx-auto max-w-6xl px-4 pb-20 pt-4"
     >
-      {/* background glow */}
       <motion.div
         aria-hidden
-        style={{ opacity: glowOpacity }}
+        style={reduceMotion ? undefined : { opacity: glowOpacity }}
         className="pointer-events-none absolute inset-0 -z-10"
       >
         <div className="absolute left-1/2 top-0 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-[radial-gradient(circle,rgba(250,204,21,0.28),transparent_70%)] blur-[140px]" />
@@ -873,7 +888,6 @@ function SolutionSection() {
       </motion.div>
 
       <div className="mx-auto flex max-w-5xl flex-col gap-10 md:flex-row md:items-stretch">
-        {/* Left headline column */}
         <div className="relative flex-1">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
@@ -898,7 +912,6 @@ function SolutionSection() {
               thumb already knows.
             </p>
 
-            {/* down arrow cue */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -937,9 +950,7 @@ function SolutionSection() {
           </motion.div>
         </div>
 
-        {/* Right steps column */}
         <div className="relative flex-1">
-          {/* vertical glowing spine */}
           <div
             aria-hidden
             className="pointer-events-none absolute left-4 top-2 bottom-4 hidden w-[2px] bg-gradient-to-b from-amber-400/0 via-amber-400/50 to-amber-400/0 md:block"
@@ -959,7 +970,6 @@ function SolutionSection() {
                 }}
                 className="relative overflow-hidden rounded-3xl border border-amber-500/30 bg-[radial-gradient(circle_at_top,rgba(250,204,21,0.12),rgba(10,10,10,0.98))] p-5 pl-6 shadow-[0_30px_90px_rgba(0,0,0,0.9)] md:pl-16"
               >
-                {/* connecting dot */}
                 <div
                   aria-hidden
                   className="pointer-events-none absolute left-[14px] top-7 hidden h-3 w-3 rounded-full bg-amber-400 shadow-[0_0_18px_rgba(251,191,36,0.9)] md:block"
@@ -980,10 +990,8 @@ function SolutionSection() {
                   <h3 className="text-lg font-semibold text-amber-50 md:text-xl">
                     {step.title}
                   </h3>
-                  {/* subtitles removed on purpose */}
                 </div>
 
-                {/* subtle animated pattern */}
                 <motion.div
                   aria-hidden
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -997,22 +1005,24 @@ function SolutionSection() {
                   className="pointer-events-none absolute right-0 top-0 h-full w-32 opacity-80"
                 >
                   <div className="absolute inset-0 bg-gradient-to-l from-amber-400/15 via-amber-400/0 to-transparent" />
-                  <motion.div
-                    animate={{ y: ["0%", "-30%", "0%"] }}
-                    transition={{
-                      duration: 10 + idx * 2,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    }}
-                    className="absolute inset-x-6 top-4 flex flex-col gap-2 opacity-70"
-                  >
-                    {[0, 1, 2, 3, 4].map((i) => (
-                      <div
-                        key={i}
-                        className="h-[2px] rounded-full bg-amber-300/70"
-                      />
-                    ))}
-                  </motion.div>
+                  {!reduceMotion && (
+                    <motion.div
+                      animate={{ y: ["0%", "-30%", "0%"] }}
+                      transition={{
+                        duration: 10 + idx * 2,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
+                      className="absolute inset-x-6 top-4 flex flex-col gap-2 opacity-70"
+                    >
+                      {[0, 1, 2, 3, 4].map((i) => (
+                        <div
+                          key={i}
+                          className="h-[2px] rounded-full bg-amber-300/70"
+                        />
+                      ))}
+                    </motion.div>
+                  )}
                 </motion.div>
               </motion.div>
             ))}
@@ -1036,13 +1046,11 @@ function BrainPlusSection() {
       transition={{ duration: 0.7, ease: "easeOut" }}
       className="relative mx-auto mt-20 max-w-5xl px-4"
     >
-      {/* ambient glow */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute left-1/2 top-0 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-[radial-gradient(circle,rgba(255,215,120,0.22),transparent_70%)] blur-[140px]" />
       </div>
 
       <div className="relative overflow-hidden rounded-[28px] border border-amber-400/25 bg-[radial-gradient(circle_at_top,rgba(15,15,15,1),rgba(0,0,0,1))] px-6 py-9 shadow-[0_40px_120px_rgba(0,0,0,0.6)] md:px-10 md:py-11">
-        {/* top label + heading */}
         <div className="mb-6 text-center">
           <div className="mb-3 inline-flex items-center justify-center rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1 text-[11px] font-semibold tracking-[0.22em] text-amber-200">
             BRAIN+ UPGRADE
@@ -1057,9 +1065,7 @@ function BrainPlusSection() {
           </p>
         </div>
 
-        {/* tiers */}
         <div className="mt-6 grid gap-6 md:grid-cols-2">
-          {/* Free */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -1111,7 +1117,6 @@ function BrainPlusSection() {
             </a>
           </motion.div>
 
-          {/* Brain+ */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -1125,7 +1130,7 @@ function BrainPlusSection() {
               <div className="mb-1 inline-flex items-center gap-2 rounded-full bg-amber-400/20 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-100">
                 Most Popular
               </div>
-              <h3 className="text-base font-semibold text-amber-50">
+            <h3 className="text-base font-semibold text-amber-50">
                 Brain+ Premium
               </h3>
               <ul className="mt-4 space-y-2 text-xs leading-6 text-amber-50/90">
@@ -1260,7 +1265,6 @@ function FaqBox({
         "shadow-[0_0_28px_-12px_rgba(255,215,130,0.25)]"
       )}
     >
-      {/* top bar accent */}
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-400/40 to-transparent" />
 
       <button
@@ -1318,7 +1322,6 @@ function FaqBox({
         </div>
       </motion.div>
 
-      {/* bottom glow when open */}
       <div
         className={cx(
           "pointer-events-none absolute inset-x-0 bottom-0 h-16 translate-y-6 blur-2xl transition-opacity",
@@ -1332,6 +1335,7 @@ function FaqBox({
 export default function Page() {
   const brainRef = useRef<HTMLDivElement>(null);
   const [sticky, setSticky] = useState(false);
+  const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
     const on = () => setSticky(window.scrollY > window.innerHeight * 0.4);
@@ -1340,15 +1344,30 @@ export default function Page() {
     return () => window.removeEventListener("scroll", on);
   }, []);
 
-  // Brain parallax (gentle)
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => {
+      setReduceMotion(mq.matches || window.innerWidth < 768);
+    };
+    update();
+    mq.addEventListener("change", update);
+    window.addEventListener("resize", update);
+    return () => {
+      mq.removeEventListener("change", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (reduceMotion) return;
     const reduce = window.matchMedia?.(
       "(prefers-reduced-motion: reduce)"
     )?.matches;
     if (reduce) return;
-    const el = () => brainRef.current?.querySelector("img") as
-      | HTMLElement
-      | null;
+
+    const el = () =>
+      brainRef.current?.querySelector("img") as HTMLElement | null;
     const onScroll = () => {
       const t = Math.min(1, window.scrollY / 600);
       const img = el();
@@ -1357,20 +1376,17 @@ export default function Page() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [reduceMotion]);
 
   return (
     <main className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-black via-zinc-950 to-black text-zinc-100">
-      {/* subtle top gradient line */}
       <div
         aria-hidden
         className="pointer-events-none fixed inset-x-0 top-0 z-40 h-px bg-gradient-to-r from-transparent via-amber-400/40 to-transparent"
       />
 
-      {/* ================= NAV ================= */}
       <header className="sticky top-0 z-30 border-b border-zinc-900/60 bg-black/60 backdrop-blur supports-[backdrop-filter]:bg-black/30">
         <nav className="relative mx-auto flex max-w-6xl items-center justify-center px-4 py-3">
-          {/* Left: logo */}
           <div className="flex flex-1 items-center gap-3">
             <Logo size={40} />
             <span className="hidden select-none text-sm font-semibold tracking-wider text-amber-300 sm:inline">
@@ -1378,7 +1394,6 @@ export default function Page() {
             </span>
           </div>
 
-          {/* Center: links */}
           <div className="hidden flex-1 items-center justify-center gap-6 text-sm text-zinc-300 md:flex">
             <a href="#solution" className="hover:text-zinc-100">
               How it works
@@ -1391,7 +1406,6 @@ export default function Page() {
             </a>
           </div>
 
-          {/* Right: CTA */}
           <div className="flex flex-1 items-center justify-end">
             <a
               href="#get"
@@ -1403,15 +1417,13 @@ export default function Page() {
         </nav>
       </header>
 
-      {/* ================= HERO ================= */}
       <section
         id="hero-wrap"
         aria-label="Hero"
         className="relative mx-auto max-w-6xl overflow-hidden px-4 pb-12 pt-12 md:pb-16 md:pt-16"
       >
-        <HeroParticles targetRef={brainRef} />
+        <HeroParticles targetRef={brainRef} reduceMotion={reduceMotion} />
 
-        {/* Caustic gold glow + grain */}
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute left-1/2 top-1/2 h-[480px] w-[480px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-400/25 blur-[120px]" />
           <div className="absolute inset-0 [background-image:radial-gradient(40%_60%_at_50%_40%,rgba(255,215,106,.18),transparent_65%)] opacity-70" />
@@ -1443,7 +1455,6 @@ export default function Page() {
             the world.
           </motion.p>
 
-          {/* BIG brain + 3D hover tilt */}
           <div ref={brainRef} className="relative mt-6 flex justify-center">
             <div
               aria-hidden
@@ -1452,6 +1463,7 @@ export default function Page() {
             <div
               className="relative will-change-transform [perspective:1000px]"
               onMouseMove={(e) => {
+                if (reduceMotion) return;
                 const el = e.currentTarget as HTMLDivElement;
                 const img = el.querySelector("img") as HTMLElement | null;
                 if (!img) return;
@@ -1482,7 +1494,6 @@ export default function Page() {
             </div>
           </div>
 
-          {/* CTAs – single centered button */}
           <div
             id="get"
             className="mt-6 flex flex-col items-center justify-center"
@@ -1496,7 +1507,6 @@ export default function Page() {
             </a>
           </div>
 
-          {/* Store badges */}
           <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
             <a
               href={IOS_STORE}
@@ -1545,7 +1555,6 @@ export default function Page() {
             </a>
           </div>
 
-          {/* Keywords */}
           <div className="mx-auto mt-8 flex max-w-5xl flex-wrap items-center justify-center gap-6 opacity-80 sm:gap-10">
             {["FAST", "FOCUSED", "BEAUTIFUL", "ADDICTIVELY SMART"].map(
               (t) => (
@@ -1561,16 +1570,12 @@ export default function Page() {
         </div>
       </section>
 
-      {/* ================= DOOMSCROLLING MATH ================= */}
-      <DoomscrollMathSection />
+      <DoomscrollMathSection reduceMotion={reduceMotion} />
 
-      {/* ================= PROBLEM SCREEN ================= */}
       <ProblemStatementSection />
 
-      {/* ================= OUR SOLUTION / HOW IT WORKS ================= */}
-      <SolutionSection />
+      <SolutionSection reduceMotion={reduceMotion} />
 
-      {/* ================= DEMO ================= */}
       <section id="demo" className="mx-auto -mt-4 max-w-6xl px-4">
         <h2 className="mb-2 text-center text-2xl font-semibold text-zinc-100 md:text-3xl">
           Built like social media. Feels like an encyclopedia.
@@ -1611,10 +1616,8 @@ export default function Page() {
         </div>
       </section>
 
-      {/* ================= BRAIN+ (Free vs Premium) ================= */}
       <BrainPlusSection />
 
-      {/* ================= FAQ (Prestige Black Boxes) ================= */}
       <motion.section
         id="faq"
         initial={{ opacity: 0, y: 40, scale: 0.98 }}
@@ -1623,7 +1626,6 @@ export default function Page() {
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="relative mx-auto mt-24 max-w-5xl px-4"
       >
-        {/* ambient gold mist */}
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute left-1/2 top-1/2 h-[900px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,224,150,0.18),transparent_70%)] blur-[180px]" />
         </div>
@@ -1665,7 +1667,6 @@ export default function Page() {
         </div>
       </motion.section>
 
-      {/* ================= FOOTER ================= */}
       <footer className="mx-auto mt-24 max-w-6xl border-t border-zinc-900/70 px-4 py-10 text-sm text-zinc-500">
         <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
           <div className="flex items-center gap-3">
@@ -1702,7 +1703,6 @@ export default function Page() {
         </div>
       </footer>
 
-      {/* ================= STICKY CTA (mobile) ================= */}
       {sticky && (
         <div className="fixed inset-x-0 bottom-3 z-40 mx-auto w-[94%] rounded-2xl border border-amber-400/25 bg-[rgba(0,0,0,0.86)] p-2 backdrop-blur-md md:hidden">
           <a
