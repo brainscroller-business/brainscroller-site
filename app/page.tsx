@@ -1423,41 +1423,49 @@ export default function Page() {
         </div>
       </motion.section>
 
-      <footer className="mx-auto mt-24 max-w-6xl border-t border-zinc-900/70 px-4 py-10 text-sm text-zinc-500">
-        <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-          <div className="flex items-center gap-3">
-            <Logo size={28} />
-            <span className="text-zinc-400">
-              © {new Date().getFullYear()} BrainScroller
-            </span>
-          </div>
-          <div className="flex flex-wrap items-center gap-4 md:gap-6">
-            <a
-              href={IOS_STORE}
-              className="rounded-lg border border-zinc-800 px-3 py-2 text-xs text-zinc-300 hover:border-zinc-700"
-            >
-              App Store
-            </a>
-            <a
-              href={ANDROID_STORE}
-              className="rounded-lg border border-zinc-800 px-3 py-2 text-xs text-zinc-300 hover:border-zinc-700"
-            >
-              Google Play
-            </a>
-            <a href="/contact" className="hover:text-zinc-300">
-              Contact
-            </a>
-            <span className="hidden text-zinc-700 md:inline">·</span>
-            <a href="/privacy" className="hover:text-zinc-300">
-              Privacy
-            </a>
-            <span className="hidden text-zinc-700 md:inline">·</span>
-            <a href="/terms" className="hover:text-zinc-300">
-              Terms
-            </a>
-          </div>
-        </div>
-      </footer>
+<footer className="mx-auto mt-24 max-w-6xl border-t border-zinc-900/70 px-4 py-10 text-sm text-zinc-500">
+  <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+    <div className="flex items-center gap-3">
+      <Logo size={28} />
+      <span className="text-zinc-400">
+        © {new Date().getFullYear()} BrainScroller
+      </span>
+    </div>
+    <div className="flex flex-wrap items-center gap-4 md:gap-6">
+      <a
+        href={IOS_STORE}
+        className="rounded-lg border border-zinc-800 px-3 py-2 text-xs text-zinc-300 hover:border-zinc-700"
+      >
+        App Store
+      </a>
+      <a
+        href={ANDROID_STORE}
+        className="rounded-lg border border-zinc-800 px-3 py-2 text-xs text-zinc-300 hover:border-zinc-700"
+      >
+        Google Play
+      </a>
+      <a href="/contact" className="hover:text-zinc-300">
+        Contact
+      </a>
+      <span className="hidden text-zinc-700 md:inline">·</span>
+      <a href="/privacy" className="hover:text-zinc-300">
+        Privacy
+      </a>
+      <span className="hidden text-zinc-700 md:inline">·</span>
+      <a href="/terms" className="hover:text-zinc-300">
+        Terms
+      </a>
+      <span className="hidden text-zinc-700 md:inline">·</span>
+      <a href="/delete-account" className="hover:text-zinc-300">
+        Delete account
+      </a>
+      <span className="hidden text-zinc-700 md:inline">·</span>
+      <a href="/delete-data" className="hover:text-zinc-300">
+        Delete data
+      </a>
+    </div>
+  </div>
+</footer>
 
       {sticky && (
         <div
