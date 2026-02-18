@@ -33,10 +33,10 @@ function BackBar({ title }: { title: string }) {
 export default function PrivacyPage() {
   const markdown = `
 # BrainScroller — Privacy Policy
-**Last updated:** October 1, 2025
+**Last updated:** February 17, 2026
 
-Welcome to **BrainScroller** (“we”, “our”, “us”). We care about your privacy. This policy explains what we collect, how we use it, and your choices.  
-Questions? **brainscroller@gmail.com**
+Welcome to **BrainScroller** ("we", "our", "us"). We care about your privacy. This policy explains what we collect, how we use it, and your choices.  
+Questions? **support@brainscroller.com**
 
 ---
 
@@ -48,100 +48,121 @@ Questions? **brainscroller@gmail.com**
 
 ### Information collected automatically
 - **Usage data**: screens, taps, session length, crash logs.
-- **Device data**: model, OS, language, region, IP-derived location.
-- **Advertising identifiers** for ads and measurement.
+- **Device data**: model, OS, language, country/region, time zone, IP-derived region.
+- **Advertising identifiers** (e.g., Google Advertising ID) for ads and measurement.
 - **Push tokens** to deliver notifications to your device.
 
+### AI assistant (optional)
+When you use the **Ava AI assistant** (chat and voice features), we send your messages and voice recordings to a third-party AI service so we can provide responses.
+
+**What we send**
+- **Chat messages**: The text you type and your conversation history are sent to generate replies.
+- **Voice recordings**: If you use the voice feature, your spoken audio is sent to convert speech to text.
+- **Documents** (optional): If you ask to summarize a document, the file content is sent for processing.
+
+**Who receives this data**
+We use **OpenAI** (https://openai.com) to power the AI assistant. OpenAI processes your messages and voice on our behalf to generate responses. OpenAI's privacy policy and data practices apply to data they receive: https://openai.com/policies/privacy-policy.
+
+We do **not** use your AI conversations for training OpenAI's models (per our agreement with OpenAI). Data is processed to fulfill your request and is retained according to our retention policies below.
+
+**Your permission**
+We ask your permission before sending any data to the AI service. You can choose not to use the AI features; the rest of the app works without them.
+
 ### Microphone (optional)
-If you enable **voice features**, audio is used only to fulfill your request and is not recorded or stored.
+If you enable the **voice feature**, the app accesses the microphone while you use that feature. We do **not** record or listen in the background. Audio is sent to OpenAI for transcription and is used only to fulfill your request; it is not collected or stored separately.
 
 ### Purchases (optional)
-We receive non-sensitive purchase metadata (product ID, status, timestamps).  
-Payment details stay with the App Store / Play Store provider.
+If you buy subscriptions or features, we receive non-sensitive purchase metadata (product ID, status, timestamps). We do **not** receive full payment details.
 
 ---
 
 ## How we use information
-- Provide and improve app features and performance.  
-- Personalize content and measure effectiveness.  
-- Show ads and limit frequency.  
-- Send notifications (only with permission).  
-- Prevent fraud, secure services, and comply with law.  
-- Offer support and respond to requests.
+- Provide, maintain, and improve app features and performance.
+- Personalize content and measure feature effectiveness.
+- Show ads and limit ad frequency.
+- Send push notifications you opt into (reminders, new content).
+- Prevent fraud, secure our services, and comply with law.
+- Provide support and respond to requests.
 
 ---
 
-## Third-party processors
-- **Supabase** — authentication, database, storage.  
-- **Amplitude** — analytics.  
-- **Google AdMob** — ads, measurement, fraud prevention.  
-- **Expo Notifications** — push delivery.  
-- **RevenueCat** *(if enabled)* — subscription management.
+## Third-party services (processors)
+We use trusted vendors to operate the app; they process data on our behalf under contract:
 
-These providers process data under their own privacy commitments and may operate globally.
+- **Supabase** — authentication, database, storage, sessions.
+- **OpenAI** — AI assistant (chat replies, voice transcription, document summarization). Receives your messages, voice recordings, and optional document content when you use the Ava AI feature. See "AI assistant" above for details.
+- **Amplitude** — product analytics.
+- **Google AdMob** — ads, measurement, fraud prevention (may receive device/ad IDs and coarse location signals).
+- **Expo Notifications** — delivery of push notifications.
+- **RevenueCat** *(if enabled)* — subscription & purchase management.
+
+These providers may process data on servers in various countries consistent with their own privacy commitments.
 
 ---
 
 ## News & External Sources
-BrainScroller displays short summaries and images from public RSS/news feeds.  
-We do **not** collect extra data from publishers or track users on those sites.  
-Linked articles open on their original publisher websites.
+BrainScroller displays short summaries and images from publicly available news feeds and sources.  
+We do **not** collect or transmit any additional data from those publishers beyond the same publicly provided RSS or metadata that any web browser or news reader would request.  
+All linked articles open on their original publisher websites, which have their own privacy policies.  
+Images and headlines are cached or proxied only for performance and do **not** constitute ownership or tracking by BrainScroller.
 
 ---
 
-## Ads & Tracking Choices
-- Turn off personalized ads in device settings.  
-- Analytics data are aggregated only.  
-- We **do not sell** personal information.
+## Ads & tracking choices
+- **Personalized ads**: opt out in device settings (Google settings → Ads).
+- **Analytics**: we use aggregated analytics to improve the product.
+- **Do Not Sell**: we **do not sell** personal information.
 
 ---
 
-## Push Notifications
-Sent only if you allow them. You can disable them anytime.
+## Push notifications
+We send notifications only if you allow them. Turn them off anytime in system settings or in-app (if available).
 
 ---
 
-## Data Retention
-- Account / usage data: retained while active.  
-- Crash logs: deleted after aggregation.  
-- Purchases: kept as required by law.  
-- Notification tokens: removed when disabled or inactive.
+## Data retention
+- Account/usage data: kept while your account is active and for a reasonable period thereafter for backups, security, and legal requirements.
+- Crash/diagnostic data: retained for operational periods, then aggregated or deleted.
+- Purchase records: retained as required for accounting and anti-fraud.
+- Notification tokens: deleted on logout, disablement, or after reasonable inactivity.
 
 ---
 
 ## Security
-We use encryption, access control, and least-privilege practices.  
-No method is 100% secure, but we continually improve safeguards.
+We use safeguards including encryption in transit (HTTPS), access controls, and least-privilege practices. No method is 100% secure, but we work to protect your data.
 
 ---
 
-## Your Rights & Choices
-Depending on your region, you may request access, correction, or deletion.  
-Contact **brainscroller@gmail.com** for verified requests.
+## Your rights & choices
+Depending on your region, you may have rights to access, correct, delete, object/restrict, or port data.  
+Requests: **support@brainscroller.com** (we may need to verify your identity).
 
-Control permissions directly in system settings (Microphone, Notifications, Ads Personalization, etc).
+**Control permissions**
+- **Microphone**: System Settings → Apps → BrainScroller → Permissions.
+- **Notifications**: System Settings → Notifications → BrainScroller.
+- **Ads personalization**: System Google settings → Ads → Opt out.
+- **Sign-out/Delete**: use in-app options (if available) or email support.
 
 ---
 
 ## Children
-Not directed to users under 13. Data from minors is deleted upon discovery.
+BrainScroller is **not directed to children under 13**. If we learn we collected personal info from a child under 13, we'll delete it.
 
 ---
 
-## International Use
-Data may be processed on servers outside your country with adequate protections.
+## International use
+We may process data on servers outside your country with appropriate protections consistent with applicable law.
 
 ---
 
-## Updates
-We may revise this policy and update the “Last updated” date.  
-Material changes will be notified in-app.
+## Changes
+We may update this policy. We'll change the "Last updated" date and, if changes are material, notify you in-app or by other reasonable means.
 
 ---
 
 ## Contact
 **BrainScroller**  
-**Email:** brainscroller@gmail.com
+**Email:** support@brainscroller.com
 `;
 
   return (
