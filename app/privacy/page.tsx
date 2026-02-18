@@ -61,7 +61,7 @@ When you use the **Ava AI assistant** (chat and voice features), we send your me
 - **Documents** (optional): If you ask to summarize a document, the file content is sent for processing.
 
 **Who receives this data**
-We use **OpenAI** (https://openai.com) to power the AI assistant. OpenAI processes your messages and voice on our behalf to generate responses. OpenAI's privacy policy and data practices apply to data they receive: https://openai.com/policies/privacy-policy.
+We use **OpenAI** (https://openai.com) to power the AI assistant. OpenAI processes your messages and voice on our behalf to generate responses. OpenAI provides data protection safeguards that meet or exceed industry standards and is contractually required to protect your data; their privacy policy applies: https://openai.com/policies/privacy-policy.
 
 We do **not** use your AI conversations for training OpenAI's models (per our agreement with OpenAI). Data is processed to fulfill your request and is retained according to our retention policies below.
 
